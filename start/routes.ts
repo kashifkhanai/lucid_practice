@@ -14,3 +14,5 @@ router.get('/', async () => {
     hello: 'world',
   }
 })
+
+import '#start/routes/user_route'
