@@ -1,0 +1,137 @@
+name: AI PR Review # Workflow name,............
+
+on:
+  pull_request: # Trigger: when PR is opened, updated, or edited..............
+    types: [opened, synchronize, edited]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest # Runner environment............
+    permissions:
+      contents: read # Permission to read code.............
+      pull-requests: write # Permission to write PR comments.............
+
+    steps:
+      # Checkout code (clone repo inside runner)...........
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        #  Extract PR diff  ...................
+      - name: Extract PR Diff
+        run: |
+          git fetch origin ${{ github.base_ref }}                            # Fetch base branch................
+          git diff origin/${{ github.base_ref }}...HEAD > diff.txt      # Save diff between base branch and PR head..........
+          head -n 800 diff.txt > diff.txt.tmp && mv diff.txt.tmp diff.txt   # Limit diff size to 800 lines............
+
+          # Install OpenAI Python client.................
+      - name: Install OpenAI
+        run:
+          pip install openai
+
+          # Send PR diff to AI model and generate review..............
+      - name: Run AI Review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # Inject secret.................
+        run: |
+          # Dynamically generate Python script.....................
+
+          cat << 'EOF' > review.py
+          import os
+          from openai import OpenAI
+
+          # Initialize OpenAI client...................
+          client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+          # Read the PR diff
+          with open("diff.txt") as f:
+              diff = f.read()
+
+          # Prepare the prompt for the AI model......................
+
+          prompt = f"""
+              You are an **expert AI Pull Request Reviewer**. Analyze this PR carefully.
+
+              ### Diff:
+              {diff}
+
+              ---
+
+              ### Instructions:
+
+              For **each file** in the diff:
+              1. State the **type of change** in that file (choose one or more):
+                - 🆕 New Feature
+                - 🐛 Bug Fix
+                - 🔧 Enhancement/Refactor
+                - 📄 Minor/Non-functional change
+
+              2. Provide a **short summary (2–3 sentences)** of what exactly changed.
+
+              3. Give **file-specific suggestions** for improvement (code quality, structure, tests, error handling, performance, etc.).
+
+              4. Highlight **impacts in this file**:
+                - 🔒 Security
+                - ⚡ Performance
+                - 🛠️ Maintainability
+                - 🎨 UX
+
+              ---
+
+              ### After analyzing all files, provide an **Overall Review**:
+              - **Summary of what this PR mainly does** (new features, fixes, updates).
+              - **Biggest strengths of this PR**.
+              - **Risks or potential issues** across the PR.
+              - **Top 3 recommended improvements**.
+
+              ---
+
+              ### Final Verdict (choose one):
+              - ✅ Approve
+              - ❌ Request Changes
+              - 🟡 Approve with Suggestions
+
+              ---
+
+              ### Output Format:
+              Respond in **Markdown** with these sections:
+              - `## File: <filename>`
+              - `### Change Type`
+              - `### Summary`
+              - `### Suggestions`
+              - `### Impacts`
+              - (repeat for each file)
+              - `## Overall Review`
+              - `## Final Verdict`
+              """
+
+
+
+           # Get response from AI...................
+
+          response = client.chat.completions.create(
+              model="gpt-4o-mini",
+              messages=[{"role": "user", "content": prompt}]
+          )
+
+          # Extract text...................
+
+          review_text = response.choices[0].message.content
+
+           # Save output to review.md...................
+
+          with open("review.md", "w") as f:
+              f.write(review_text)
+          EOF
+
+          # Run script...................
+
+          python review.py
+
+        # Post generated review as PR comment.................
+      - name: Post PR Review
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "🤖 OpenAI AI Review" # Heading for comment...................
+          path: review.md #Path to file written by AI.................
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,70 @@
+
+name: Prettier Auto-Format
+
+on:
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # 1️⃣ Checkout PR branch
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+          cache: 'npm'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Run Prettier Check
+      - name: Run Prettier Check
+        id: prettier_check
+        run: |
+          npx prettier --check .
+          echo "changes_detected=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      # 5️⃣ Skip formatting if no changes needed
+      - name: Skip formatting
+        if: steps.prettier_check.outputs.changes_detected == 0
+        run: echo "No formatting changes needed"
+
+      # 6️⃣ Auto-format code (only if changes detected)
+      - name: Run Prettier Auto-Format
+        if: steps.prettier_check.outputs.changes_detected != 0
+        run: npx prettier --write .
+
+      # 7️⃣ Commit & push auto-formatted changes
+      - name: Commit & push changes
+        if: steps.prettier_check.outputs.changes_detected != 0
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: auto-format code via Prettier"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
+

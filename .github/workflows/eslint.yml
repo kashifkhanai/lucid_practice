@@ -1,0 +1,55 @@
+name: ESLint Check
+on:
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Checkout PR branch
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # 2️⃣ Setup Node.js with caching
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Run ESLint and capture all errors
+      - name: Run ESLint
+        id: eslint
+        run: |
+          # Create a temporary file to store ESLint output
+          ESLINT_OUTPUT=$(mktemp)
+          
+          # Run ESLint and capture both stdout and stderr
+          npm run lint > "$ESLINT_OUTPUT" 2>&1
+          EXIT_CODE=$?
+          
+          # Always display the full ESLint output
+          echo "ESLint Results:"
+          cat "$ESLINT_OUTPUT"
+          
+          # Save exit code for later use
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # Clean up temporary file
+          rm "$ESLINT_OUTPUT"
+
+      # 5️⃣ Fail job if ESLint found errors
+      - name: Fail on ESLint errors
+        if: steps.eslint.outputs.exit_code != 0
+        run: |
+          echo "❌ ESLint found errors (exit code: ${{ steps.eslint.outputs.exit_code }})"
+          echo "Please fix the issues shown above before merging"
+          exit 1
+
