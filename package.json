@@ -58,6 +58,7 @@
     "@vinejs/vine": "^3.0.1",
     "luxon": "^3.7.1",
     "mysql2": "^3.14.4",
+    "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2"
   },
   "hotHook": {
