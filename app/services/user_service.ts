@@ -1,16 +1,26 @@
 import User from '#models/user'
 import { CreatUserInterface, UpdateUserInterface } from '#validators/user'
 import paginationConfig from '#config/pagination'
+import env from '#start/env'
 
-// get all users
+// Read DEBUG_DB from .env
+const IS_DEBUG = env.get('DEBUG_DB')
+
+/**
+ * Get all users with pagination.
+ * @param page - The current page number (default: 1).
+ * @param limit - The number of items per page (optional).
+ * @returns Paginated user results.
+ */
 export const listing = async (page: number = 1, limit?: number) => {
   try {
     const perPage = Math.min(limit || paginationConfig.defaultLimit, paginationConfig.maxLimit)
-    return await User.query().paginate(page, perPage)
+    return await User.query().debug(IS_DEBUG).paginate(page, perPage)
   } catch (error: any) {
     throw new Error(`Error retrieving users: ${error.message}`)
   }
 }
+//..............................................................................................................//
 // create new user
 export const createUser = async (payload: CreatUserInterface) => {
   try {
