@@ -20,7 +20,7 @@ router.get('/pool-test', async ({ response }) => {
   // Test 20 concurrent queries for MySQL
   for (let i = 1; i <= 20; i++) {
     promises.push(db.connection('mysql').rawQuery('SELECT SLEEP(1)'))
-    // PostgreSQL ke liye:
+    // for PostgreSQL:
     // promises.push(db.connection('pg').rawQuery('SELECT pg_sleep(1)'))
   }
 
