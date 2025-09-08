@@ -3,7 +3,6 @@ import User from '#models/user'
 
 export default class UserSeeder extends BaseSeeder {
   public async run() {
-    // صرف یہی لکھیں
     await User.query({ connection: 'pg' }).del()
 
     for (let i = 1; i <= 70; i++) {
