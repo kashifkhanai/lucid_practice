@@ -1,8 +1,9 @@
 import router from '@adonisjs/core/services/router'
 import db from '@adonisjs/lucid/services/db'
+
 const UsersController = () => import('#controllers/users_controller')
 
-// Existing Users routes
+// 🧑‍💻 Users routes
 router
   .group(() => {
     router.get('/listing', [UsersController, 'allUser'])
@@ -13,23 +14,19 @@ router
   })
   .prefix('/api/user')
 
-// ✅ Pooling test route
-router.get('/pool-test', async ({ response }) => {
-  const promises = []
+// Switching test route
+router.get('/api/test/switch-test', async ({ response }) => {
+  const results: any = {}
 
-  // Test 20 concurrent queries for MySQL
-  for (let i = 1; i <= 20; i++) {
-    promises.push(db.connection('mysql').rawQuery('SELECT SLEEP(1)'))
-    // for PostgreSQL:
-    // promises.push(db.connection('pg').rawQuery('SELECT pg_sleep(1)'))
-  }
+  // Query MySQL
+  results.mysql = await db.connection('mysql').rawQuery('SELECT NOW() as now')
 
-  const start = Date.now()
-  await Promise.all(promises)
-  const end = Date.now()
+  // Query PostgreSQL
+  results.pg = await db.connection('pg').rawQuery('SELECT NOW() as now')
 
   return response.json({
-    message: 'All queries completed',
-    duration: end - start,
+    message: 'Connection switching test successful',
+    mysql_time: results.mysql[0][0].now,
+    pg_time: results.pg.rows[0].now,
   })
 })
