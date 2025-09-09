@@ -8,9 +8,11 @@ export default class AuditLog extends BaseModel {
   @column()
   declare action: string
 
-  @column({ columnName: 'user_id' })
-  declare userId: number | null
+  @column({ columnName: 'actor_id' })
+  declare actorId: number | null
 
+  @column({ columnName: 'target_id' })
+  declare targetId: number | null
   @column()
   declare changes: any | null
 
