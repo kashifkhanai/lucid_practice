@@ -1,78 +1,89 @@
-import Database from '@ioc:Adonis/Lucid/Database'
+// practice/user_select_queries.ts
+import db from '@adonisjs/lucid/services/db'
+import User from '#models/user'
 
-async function main() {
-  // 1. Select all columns
-  const allUsers = await Database.from('users').select('*')
-  console.log('All Users:', allUsers)
+async function runUserQueries() {
+  try {
+    console.log('=== User Query Builder Practice ===\n')
 
-  // 2. Select specific columns
-  const userColumns = await Database.from('users').select('id', 'email')
-  console.log('Specific Columns:', userColumns)
+    // 1. Select all columns
+    const allUsers = await User.query().select('*')
+    console.log('1. select(*):', allUsers.slice(0, 2))
 
-  // 3. Where clause
-  const whereUser = await Database.from('users').where('id', 1).first()
-  console.log('Where User:', whereUser)
+    // 2. Select specific columns
+    const userColumns = await User.query().select('id', 'email', 'fullName')
+    console.log('2. select(specific columns):', userColumns.slice(0, 2))
 
-  // 4. OR Where
-  const orWhereUser = await Database.from('users')
-    .where('id', 1)
-    .orWhere('email', 'test@example.com')
-    .first()
-  console.log('OR Where User:', orWhereUser)
+    // 3. Where clause
+    const userWhere = await User.query().where('id', 1).first()
+    console.log('3. where(id=1):', userWhere)
 
-  // 5. Order by
-  const orderedUsers = await Database.from('users').orderBy('created_at', 'desc')
-  console.log('Ordered Users:', orderedUsers)
+    // 4. OR Where
+    const userOr = await User.query().where('id', 1).orWhere('email', 'test@example.com').first()
+    console.log('4. orWhere:', userOr)
 
-  // 6. Limit & Offset
-  const limitedUsers = await Database.from('users').limit(5).offset(0)
-  console.log('Limited Users:', limitedUsers)
+    // 5. Order by
+    const orderedUsers = await User.query().orderBy('createdAt', 'desc')
+    console.log('5. orderBy(createdAt desc):', orderedUsers.slice(0, 2))
 
-  // 7. Group By & Having
-  const groupedUsers = await Database.from('users')
-    .select('status')
-    .count('* as total')
-    .groupBy('status')
-    .having('total', '>', 1)
-  console.log('Grouped Users:', groupedUsers)
+    // 6. Limit & Offset
+    const limitedUsers = await User.query().limit(2).offset(1)
+    console.log('6. limit & offset:', limitedUsers)
 
-  // 8. Joins
-  const joinedUsers = await Database.from('users')
-    .join('orders', 'users.id', 'orders.user_id')
-    .select('users.id', 'users.email', 'orders.id as orderId')
-  console.log('Joined Users:', joinedUsers)
+    // 7. Group By & Having (example: status)
+    const groupedUsers = await User.query()
+      .select('status')
+      .count('* as total')
+      .groupBy('status')
+      .having('total', '>', 0)
+    console.log('7. groupBy & having:', groupedUsers)
 
-  // 9. Distinct
-  const distinctStatuses = await Database.from('users').distinct('status')
-  console.log('Distinct Statuses:', distinctStatuses)
+    // 8. Join example (assuming orders table exists)
+    const joinedUsers = await User.query()
+      .join('orders', 'users.id', 'orders.user_id')
+      .select('users.id', 'users.email', 'orders.id as orderId')
+    console.log('8. join users -> orders:', joinedUsers.slice(0, 2))
 
-  // 10. Aggregates
-  const totalUsers = await Database.from('users').count('* as total')
-  const avgId = await Database.from('users').avg('id as avgId')
-  console.log('Total Users:', totalUsers)
-  console.log('Average ID:', avgId)
+    // 9. Distinct
+    const distinctStatuses = await User.query().distinct('status')
+    console.log('9. distinct status:', distinctStatuses)
 
-  // 11. Raw Query
-  const rawQuery = await Database.raw('SELECT * FROM users WHERE status = ?', ['active'])
-  console.log('Raw Query Result:', rawQuery)
+    // 10. Aggregates
+    const totalUsers = await User.query().count('* as total')
+    const avgId = await User.query().avg('id as avgId')
+    console.log('10. count & avg:', { totalUsers: totalUsers[0], avgId: avgId[0] })
 
-  // 12. SubQuery
-  const subQueryUsers = await Database.from('users')
-    .select('id', 'email')
-    .whereIn('id', Database.from('orders').select('user_id').where('status', 'completed'))
-  console.log('SubQuery Users:', subQueryUsers)
+    // 11. Raw query
+    const rawResult = await db.rawQuery('SELECT * FROM users WHERE status = ?', ['active'])
+    console.log('11. rawQuery:', rawResult)
 
-  // 13. Pagination
-  const paginatedUsers = await Database.from('users').select('*').paginate(1, 5)
-  console.log('Paginated Users:', paginatedUsers)
+    // 12. SubQuery (users with completed orders)
+    const subQuery = db.from('orders').select('user_id').where('status', 'completed')
+    const usersWithCompletedOrders = await User.query().whereIn('id', subQuery)
+    console.log('12. subQuery:', usersWithCompletedOrders.slice(0, 2))
 
-  // 14. Debug
-  const debugQuery = Database.from('users').select('*').debug()
-  console.log('Debug Query:', debugQuery)
+    // 13. Pagination
+    const paginatedUsers = await User.query().paginate(1, 2)
+    console.log('13. paginate:', {
+      total: paginatedUsers.total,
+      perPage: paginatedUsers.perPage,
+      currentPage: paginatedUsers.currentPage,
+      data: paginatedUsers.all(),
+    })
 
-  // 15. ToSQL
-  const toSQLQuery = Database.from('users').select('*').toSQL()
-  console.log('Generated SQL:', toSQLQuery.sql)
+    // 14. Debug
+    console.log('14. debug query (check console):')
+    await User.query().debug(true).select('id', 'email').limit(1)
+
+    // 15. ToSQL
+    const sqlQuery = User.query().where('id', 1).toSQL()
+    console.log('15. toSQL:', sqlQuery.sql)
+
+    console.log('\n=== All User Query Examples Completed ===')
+  } catch (error) {
+    console.error('Error in queries:', error)
+  }
 }
 
-main()
+// Run queries
+runUserQueries()
