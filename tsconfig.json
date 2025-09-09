@@ -1,7 +1,9 @@
 {
-  "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
-    "rootDir": "./",
-    "outDir": "./build"
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@ioc:Adonis/*": ["./node_modules/@adonisjs/*"]
+    }
   }
 }
