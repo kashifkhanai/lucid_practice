@@ -7,7 +7,21 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id') // primary id
       table.string('action').notNullable() // action performed
-      table.integer('user_id').unsigned().index().nullable // user who performed the action
+      table
+        .integer('actor_id') // which  user performed the action
+        .unsigned()
+        .references('id')
+        .inTable('users')
+        .onDelete('SET NULL')
+        .index()
+
+      table
+        .integer('target_id')
+        .unsigned()
+        .references('id')
+        .inTable('users')
+        .onDelete('CASCADE')
+        .index() //on action done
       table.json('changes').notNullable() // details of the changes
       table.string('meta').nullable() // additional metadata
       table.timestamp('created_at').defaultTo(this.now()) // timestamp of the action
