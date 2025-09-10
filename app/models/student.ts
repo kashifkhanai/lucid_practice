@@ -18,9 +18,9 @@ export default class Student extends BaseModel {
   @column()
   declare dob: Date | null
   //..............................................................
-
-  @column()
-  declare class: string | null
+  // //Newly removed column when we drop column from existing table
+  // @column()
+  // declare class: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
