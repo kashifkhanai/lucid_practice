@@ -1,7 +1,10 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@adonisjs/lucid/orm'
-
-export default class Student extends BaseModel {
+//................................................................
+// export default class Student extends BaseModel {
+//####### ### renaming model according to renamed table ##########
+export default class Pupils extends BaseModel {
+  //..............................................................
   @column({ isPrimary: true })
   declare id: number
 
