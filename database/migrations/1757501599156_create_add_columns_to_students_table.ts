@@ -5,7 +5,8 @@ export default class extends BaseSchema {
   protected tableName = 'students'
 
   async up() {
-    this.schema.createTable(this.tableName, (table) => {
+    //this table is exsisting so we use alterTable
+    this.schema.alterTable(this.tableName, (table) => {
       table.integer('roll_no').nullable().unique()
       table.date('dob').nullable()
     })
