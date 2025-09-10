@@ -5,8 +5,11 @@ export default class Student extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
+  // @column()
+  // declare name: string
+  // // after renaming column 'name' to 'full_name'
   @column()
-  declare name: string
+  declare fullName: string
 
   @column()
   declare email: string
