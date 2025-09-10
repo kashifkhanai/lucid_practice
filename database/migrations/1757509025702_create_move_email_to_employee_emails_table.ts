@@ -38,7 +38,7 @@ export default class extends BaseSchema {
 
   public async down() {
     // for rollback, add email column back to employees table
-    this.schema.alterTable(this.tableName, (table) => {
+    this.schema.alterTable('employees', (table) => {
       table.string('email')
     })
     this.schema.dropTable(this.tableName)
