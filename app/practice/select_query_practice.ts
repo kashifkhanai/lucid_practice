@@ -1,4 +1,4 @@
-// practice/user_select_queries.ts
+// practice for AdonisJS Lucid ORM - Select Queries
 import db from '@adonisjs/lucid/services/db'
 import User from '#models/user'
 
@@ -14,7 +14,7 @@ async function runUserQueries() {
     const userColumns = await User.query().select('id', 'email', 'fullName')
     console.log('2. select(specific columns):', userColumns.slice(0, 2))
 
-    // 3. Where clause
+    // 3. where clause(condition) example (id = 1)
     const userWhere = await User.query().where('id', 1).first()
     console.log('3. where(id=1):', userWhere)
 
