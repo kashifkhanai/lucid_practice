@@ -10,6 +10,14 @@ export default class Student extends BaseModel {
 
   @column()
   declare email: string
+  //..............................................................
+  //Newly added columns when we add new columns to existing table
+  @column()
+  declare rollNo: number | null
+
+  @column()
+  declare dob: Date | null
+  //..............................................................
 
   @column()
   declare class: string | null
