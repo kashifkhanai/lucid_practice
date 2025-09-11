@@ -16,3 +16,4 @@ router.get('/', async () => {
 })
 
 import '#start/routes/user_route'
+import '#start/routes/test_relation_route'
