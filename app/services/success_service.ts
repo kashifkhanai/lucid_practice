@@ -7,6 +7,9 @@ export class SuccessService {
     USER_LISTED: { message: 'User retrive successfuly', Status: 200 },
     USER_UPDATED: { message: 'User updated successfuly', Status: 200 },
     USER_DELETED: { message: 'User Deleted Successfuly', Status: 200 },
+    PROFILE_CREATED: { message: 'profile created  Successfuly', Status: 200 },
+    POST_CREATED: { message: 'post created Successfuly', Status: 200 },
+
     // Add more predefined success messages here
   }
   /**
