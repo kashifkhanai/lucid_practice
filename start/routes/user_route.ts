@@ -3,7 +3,6 @@ import router from '@adonisjs/core/services/router'
 import db from '@adonisjs/lucid/services/db'
 const UsersController = () => import('#controllers/users_controller')
 
-
 router
   .group(() => {
     router.get('/listing', [UsersController, 'allUser'])
@@ -33,4 +32,3 @@ router.get('/pool-test', async ({ response }) => {
     duration: end - start,
   })
 })
-
